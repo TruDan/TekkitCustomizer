@@ -35,16 +35,11 @@ public class MaterialCollection
 	//returns a MaterialInfo complete with the friendly material name from the config file
 	MaterialInfo Contains(MaterialInfo material)
 	{
-		for(int i = 0; i < this.materials.size(); i++)
-		{
-			MaterialInfo thisMaterial = this.materials.get(i);
-			if(material.typeID == thisMaterial.typeID && (thisMaterial.allDataValues || material.data == thisMaterial.data))
-			{
+		for (MaterialInfo thisMaterial : this.materials) {
+			if (material.typeID == thisMaterial.typeID && (thisMaterial.allDataValues || material.data == thisMaterial.data)) {
 				return thisMaterial;
-			}
-			else if(thisMaterial.typeID > material.typeID)
-			{
-				return null;				
+			} else if (thisMaterial.typeID > material.typeID) {
+				return null;
 			}
 		}
 		
@@ -55,9 +50,8 @@ public class MaterialCollection
 	public String toString()
 	{
 		StringBuilder stringBuilder = new StringBuilder();
-		for(int i = 0; i < this.materials.size(); i++)
-		{
-			stringBuilder.append(this.materials.get(i).toString() + " ");
+		for (MaterialInfo material : this.materials) {
+			stringBuilder.append(material.toString()).append(" ");
 		}
 		
 		return stringBuilder.toString();

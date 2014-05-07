@@ -17,21 +17,13 @@
  */
 
 package me.ryanhamshire.TekkitCustomizer;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -41,6 +33,10 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.*;
+import java.util.*;
+import java.util.logging.*;
+
 
 public class TekkitCustomizer extends JavaPlugin
 {
@@ -48,14 +44,19 @@ public class TekkitCustomizer extends JavaPlugin
 	public static TekkitCustomizer instance;
 	
 	//for logging to the console and log file
-	private static Logger log = Logger.getLogger("Minecraft");
+	private static final Logger log;
+
+	static {
+		log = Logger.getLogger("TekkitCustomizer");
+		log.setParent(Logger.getLogger("Minecraft"));
+	}
 		
 	//where configuration data is kept
 	private final static String dataLayerFolderPath = "plugins" + File.separator + "TekkitCustomizerData";
 	public final static String configFilePath = dataLayerFolderPath + File.separator + "config.yml";
 	
 	//user configuration, loaded/saved from a config.yml
-	ArrayList<World> config_enforcementWorlds = new ArrayList<World>();
+	ArrayList<String> config_enforcementWorlds = new ArrayList<String>();
 	MaterialCollection config_usageBanned = new MaterialCollection();
 	MaterialCollection config_ownershipBanned = new MaterialCollection();
 	MaterialCollection config_placementBanned = new MaterialCollection();
@@ -66,9 +67,9 @@ public class TekkitCustomizer extends JavaPlugin
 	boolean config_protectSurfaceFromExplosions;
 	boolean config_removeUUMatterToNonRenewableRecipes;
 	
-	public synchronized static void AddLogEntry(String entry)
+	public static void AddLogEntry(String entry)
 	{
-		log.info("TekkitCustomizer: " + entry);
+		log.info(entry);
 	}
 	
 	//initializes well...   everything
@@ -129,25 +130,22 @@ public class TekkitCustomizer extends JavaPlugin
 					ShapedRecipe shapedRecipe = (ShapedRecipe)recipe;
 					
 					Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
-					Iterator<ItemStack> ingredientsIterator = ingredients.values().iterator();
-					while(ingredientsIterator.hasNext())
-					{
-						ItemStack ingredient = ingredientsIterator.next();
-						if(ingredient != null && ingredient.getTypeId() == 30188) //uu-matter ID
+					for (ItemStack ingredient : ingredients.values()) {
+						if (ingredient != null && ingredient.getTypeId() == 30188) //uu-matter ID
 						{
 							ItemStack result = shapedRecipe.getResult();
-							if(	result.getType() == Material.DIAMOND ||
-								result.getType() == Material.COAL ||
-								result.getType() == Material.IRON_ORE ||
-								result.getType() == Material.GOLD_ORE ||
-								result.getType() == Material.REDSTONE_ORE ||
-								result.getType() == Material.OBSIDIAN ||
-								result.getType() == Material.MYCEL ||
-								result.getType() == Material.GRASS ||
-								result.getType() == Material.REDSTONE ||
-								result.getType() == Material.SULPHUR ||  		//gun powder, from creepers
-								result.getTypeId() == 140 ||					//various tekkit ores
-								result.getTypeId() == 30217 )					//sticky resin
+							if (result.getType() == Material.DIAMOND ||
+									result.getType() == Material.COAL ||
+									result.getType() == Material.IRON_ORE ||
+									result.getType() == Material.GOLD_ORE ||
+									result.getType() == Material.REDSTONE_ORE ||
+									result.getType() == Material.OBSIDIAN ||
+									result.getType() == Material.MYCEL ||
+									result.getType() == Material.GRASS ||
+									result.getType() == Material.REDSTONE ||
+									result.getType() == Material.SULPHUR ||        //gun powder, from creepers
+									result.getTypeId() == 140 ||                    //various tekkit ores
+									result.getTypeId() == 30217)                    //sticky resin
 							{
 								iterator.remove();
 								break;
@@ -160,10 +158,9 @@ public class TekkitCustomizer extends JavaPlugin
 		
 		//default for worlds list
 		ArrayList<String> defaultWorldNames = new ArrayList<String>();
-		List<World> worlds = this.getServer().getWorlds(); 
-		for(int i = 0; i < worlds.size(); i++)
-		{
-			defaultWorldNames.add(worlds.get(i).getName());
+		List<World> worlds = this.getServer().getWorlds();
+		for (World world1 : worlds) {
+			defaultWorldNames.add(world1.getName());
 		}
 		
 		//get world names from the config file
@@ -174,18 +171,13 @@ public class TekkitCustomizer extends JavaPlugin
 		}
 		
 		//validate that list
-		this.config_enforcementWorlds = new ArrayList<World>();
-		for(int i = 0; i < worldNames.size(); i++)
-		{
-			String worldName = worldNames.get(i);
+		this.config_enforcementWorlds = new ArrayList<String>();
+		for (String worldName : worldNames) {
 			World world = this.getServer().getWorld(worldName);
-			if(world == null)
-			{
+			if (world == null) {
 				AddLogEntry("Error: There's no world named \"" + worldName + "\".  Please update your config.yml.");
-			}
-			else
-			{
-				this.config_enforcementWorlds.add(world);
+			} else {
+				this.config_enforcementWorlds.add(world.getName());
 			}
 		}
 		
@@ -472,7 +464,7 @@ public class TekkitCustomizer extends JavaPlugin
 
 	public MaterialInfo isBanned(ActionType actionType, Player player, int typeId, byte data, Location location) 
 	{
-		if(!this.config_enforcementWorlds.contains(location.getWorld())) return null;
+		if(!this.config_enforcementWorlds.contains(location.getWorld().getName())) return null;
 		
 		if(player.hasPermission("tekkitcustomizer.*")) return null;
 

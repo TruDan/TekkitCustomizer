@@ -18,8 +18,6 @@
 
 package me.ryanhamshire.TekkitCustomizer;
 
-import java.util.List;
-
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
@@ -33,13 +31,15 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.*;
+
 public class EntityEventHandler implements Listener
 {
 	//when an entity (includes both dynamite and creepers) explodes...
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent explodeEvent)
 	{		
-		if(!TekkitCustomizer.instance.config_enforcementWorlds.contains(explodeEvent.getLocation().getWorld())) return;
+		if(!TekkitCustomizer.instance.config_enforcementWorlds.contains(explodeEvent.getLocation().getWorld().getName())) return;
 		
 		if(TekkitCustomizer.instance.config_protectSurfaceFromExplosions)
 		{
