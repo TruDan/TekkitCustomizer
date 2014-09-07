@@ -63,6 +63,7 @@ public class TekkitCustomizer extends JavaPlugin
 	MaterialCollection config_worldBanned = new MaterialCollection();
 	MaterialCollection config_craftingBanned = new MaterialCollection();
 	MaterialCollection config_recipesBanned = new MaterialCollection();
+        boolean config_allWorlds = true;
 
 	boolean config_protectSurfaceFromExplosions;
 	boolean config_removeUUMatterToNonRenewableRecipes;
@@ -109,6 +110,10 @@ public class TekkitCustomizer extends JavaPlugin
 		FileConfiguration config = YamlConfiguration.loadConfiguration(new File(configFilePath));
 		
 		//read configuration settings
+                
+                // Enforce on all worlds?
+                this.config_allWorlds = config.getBoolean("TekkitCustomizer.EnforceAllWorlds", true);
+                config.set("TekkitCustomizer.EnforceAllWorlds", this.config_allWorlds);
 		
 		//explosion protection for world surface
 		this.config_protectSurfaceFromExplosions = config.getBoolean("TekkitCustomizer.ProtectSurfaceFromExplosives", true);
@@ -464,7 +469,7 @@ public class TekkitCustomizer extends JavaPlugin
 
 	public MaterialInfo isBanned(ActionType actionType, Player player, int typeId, byte data, Location location) 
 	{
-		if(!this.config_enforcementWorlds.contains(location.getWorld().getName())) return null;
+		if(!this.config_enforcementWorlds.contains(location.getWorld().getName()) && !this.config_allWorlds) return null;
 		
 		if(player.hasPermission("tekkitcustomizer.*")) return null;
 
